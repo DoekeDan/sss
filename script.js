@@ -10,59 +10,79 @@ const groupIds = [4413376, 7040243];
 const experienceIds = ["130445913533770", "135060580071597", "123875295828804"];
 
 function animateCount(el, start, end) {
-  const duration = 800;
+  const duration = 1000;
   const t0 = performance.now();
-  (function update(t) {
+  function update(t) {
     const p = Math.min((t - t0) / duration, 1);
-    el.textContent = Math.floor(start + (end - start) * p).toLocaleString();
+    const value = Math.floor(start + (end - start) * p);
+    el.textContent = isNaN(value) ? '0' : value.toLocaleString();
     if (p < 1) requestAnimationFrame(update);
-  })();
+  }
+  requestAnimationFrame(update);
 }
 
 async function fetchGroup(groupId) {
-  const res = await fetch(`https://corsproxy.io/?https://groups.roblox.com/v1/groups/${groupId}`);
-  const json = await res.json();
-  return { name: json.name, count: json.memberCount || 0 };
+  try {
+    const response = await fetch(`https://corsproxy.io/?https://groups.roblox.com/v1/groups/${groupId}`);
+    const data = await response.json();
+    return {
+      name: data.name || `Group ${groupId}`,
+      count: data.memberCount || 0
+    };
+  } catch (error) {
+    console.error("Group fetch failed for ID", groupId, error);
+    return { name: `Group ${groupId}`, count: 0 };
+  }
 }
 
-async function fetchExperienceStats(univArgs) {
-  const url = `https://corsproxy.io/?https://games.roblox.com/v1/games?universeIds=${univArgs}`;
-  const res = await fetch(url);
-  const json = await res.json();
-  let visits = 0;
-  let playing = 0;
-  if (Array.isArray(json.data)) {
-    json.data.forEach(g => {
-      visits += g.visits || 0;
-      playing += g.playing || 0;
-    });
+async function fetchExperienceStats(univIds) {
+  try {
+    const response = await fetch(`https://corsproxy.io/?https://games.roblox.com/v1/games?universeIds=${univIds.join(',')}`);
+    const data = await response.json();
+    let visits = 0;
+    let playing = 0;
+
+    if (Array.isArray(data.data)) {
+      data.data.forEach(game => {
+        visits += game.visits || 0;
+        playing += game.playing || 0;
+      });
+    }
+
+    return { visits, playing };
+  } catch (error) {
+    console.error("Experience stats fetch failed:", error);
+    return { visits: 0, playing: 0 };
   }
-  return { visits, playing };
+}
+
+function getNumberFromText(el) {
+  const text = el.textContent || '0';
+  const num = parseInt(text.replace(/,/g, ''), 10);
+  return isNaN(num) ? 0 : num;
 }
 
 async function updateStats() {
   loader.style.display = "block";
   try {
-    // Groups
-    const [g1, g2] = await Promise.all(groupIds.map(fetchGroup));
-    group1NameEl.textContent = g1.name;
-    animateCount(group1El, +group1El.textContent.replace(/,/g,''), g1.count);
-    group2NameEl.textContent = g2.name;
-    animateCount(group2El, +group2El.textContent.replace(/,/g,''), g2.count);
+    const [group1, group2] = await Promise.all(groupIds.map(fetchGroup));
+    group1NameEl.textContent = group1.name;
+    group2NameEl.textContent = group2.name;
 
-    // Experiences
-    const runes = experienceIds.join(",");
-    const xp = await fetchExperienceStats(runes);
-    animateCount(visitsEl, +visitsEl.textContent.replace(/,/g,''), xp.visits);
-    animateCount(ccuEl, +ccuEl.textContent.replace(/,/g,''), xp.playing);
+    animateCount(group1El, getNumberFromText(group1El), group1.count);
+    animateCount(group2El, getNumberFromText(group2El), group2.count);
+
+    const { visits, playing } = await fetchExperienceStats(experienceIds);
+    animateCount(visitsEl, getNumberFromText(visitsEl), visits);
+    animateCount(ccuEl, getNumberFromText(ccuEl), playing);
   } catch (err) {
-    console.error("Error:", err);
+    console.error("Update error:", err);
   } finally {
     loader.style.display = "none";
   }
 }
 
-window.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => {
   updateStats();
-  setInterval(updateStats, 10000); // every 10 sec
+  setInterval(updateStats, 10000); // Refresh every 10 seconds
 });
