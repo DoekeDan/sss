@@ -1,0 +1,80 @@
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: #121212;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.container {
+  text-align: center;
+  padding: 2rem;
+  border-radius: 20px;
+  border: 3px solid #00ff88;
+  box-shadow: 0 0 15px #00ff88;
+  background: #1e1e1e;
+  max-width: 800px;
+  width: 95%;
+}
+
+h1 {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+}
+
+.groups {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.group-box {
+  background: #2a2a2a;
+  border-radius: 12px;
+  padding: 1rem 2rem;
+  border: 2px solid #00ff88;
+  min-width: 150px;
+}
+
+.live-number {
+  font-size: 2.8rem;
+  font-weight: bold;
+  margin-top: 0.5rem;
+  color: #00ff88;
+}
+
+.experiences {
+  margin-top: 2rem;
+}
+
+.stat-box {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.3rem;
+  margin: 0.5rem auto;
+  padding: 0.5rem 1rem;
+  max-width: 300px;
+  border-bottom: 1px solid #444;
+}
+
+.spinner {
+  display: none;
+  margin: 2rem auto;
+  border: 4px solid #00ff88;
+  border-top: 4px solid transparent;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
